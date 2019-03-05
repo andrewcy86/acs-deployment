@@ -31,6 +31,7 @@ repository:
       -Dalfresco.cluster.enabled=true
       -Ddeployment.method=HELM_CHART
       -Dlocal.transform.service.enabled=true
+      -Dlegacy.local.transform.service.enabled=true
       -Dtransform.service.enabled=true
       -Xms2000M -Xmx2000M"
   resources:
