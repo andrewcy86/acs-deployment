@@ -45,10 +45,13 @@ data:
       -Dsolr.port={{ index .Values "alfresco-search" "external" "port" }}
       {{- end }}
       {{- end }}
+      -Dpdfrenderer.url=http://{{ template "content-services.shortname" . }}-pdfrenderer
+      -Dimagemagick.url=http://{{ template "content-services.shortname" . }}-imagemagick
+      -Dlibreoffice.url=http://{{ template "content-services.shortname" . }}-libreoffice
+      -Dtika.url=http://{{ template "content-services.shortname" . }}-tika
       -Dalfresco-pdf-renderer.url=http://{{ template "content-services.shortname" . }}-pdfrenderer
       -Dimg.url=http://{{ template "content-services.shortname" . }}-imagemagick
       -Djodconverter.url=http://{{ template "content-services.shortname" . }}-libreoffice
-      -Dtika.url=http://{{ template "content-services.shortname" . }}-tika
       {{- if .Values.s3connector.enabled }}
       {{- range $key, $val := .Values.s3connector.config }}
       -Ds3.{{ $key }}={{ $val }}
