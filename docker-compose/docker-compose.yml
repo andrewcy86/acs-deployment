@@ -1,23 +1,19 @@
-# This docker-compose file will spin up an ACS cluster on a local host or on a server and it requires a minimum of 16GB Memory to distribute among containers.
+# This docker-compose file will spin up an ACS cluster on a local host or on a server and it requires a minimum of 12GB Memory to distribute among containers.
 # Limit container memory and assign X percentage to JVM.  There are couple of ways to allocate JVM Memory for ACS Containers
 # For example: 'JAVA_OPTS: "$JAVA_OPTS -XX:+PrintFlagsFinal -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"'
-# See Oracle docs (https://docs.oracle.com/javase/9/gctuning/parallel-collector1.htm#JSGCT-GUID-CAB83393-3438-44ED-98F0-D15641B43C7D).
-# If the container memory is not explicitly set then the flags above will set the max heap default to 1/4 of the container's memory, which may not be ideal.
-# For performance tuning, assign the container memory and give a percentage of it to the JVM.
-
-# Note: The docker-compose file from github.com is a limited trial that goes into read-only mode after 2 days.
-# Get the latest docker-compose.yml file with a 30-day trial license by accessing the Alfresco Content Services trial download page at:
-# https://www.alfresco.com/platform/content-services-ecm/trial/download
+# But, as per Oracle docs (https://docs.oracle.com/javase/9/gctuning/parallel-collector1.htm#JSGCT-GUID-CAB83393-3438-44ED-98F0-D15641B43C7D)
+# If container memory is not explicitly set, then the above flags will default max heap to 1/4th of container's memory which may not be ideal.
+# Hence, setting up explicit Container memory and then assigning a percentage of it to the JVM for performance tuning.
 
 # Using version 2 as 3 does not support resource constraint options (cpu_*, mem_* limits) for non swarm mode in Compose
 version: "2"
 
 services:
     alfresco:
-        image: alfresco/alfresco-content-repository:6.1.0
-        mem_limit: 1700m
+        image: alfresco/alfresco-governance-repository-community:3.0.a
+        mem_limit: 1500m
         environment:
-            JAVA_OPTS: "
+            JAVA_OPTS : "
                 -Ddb.driver=org.postgresql.Driver
                 -Ddb.username=alfresco
                 -Ddb.password=alfresco
@@ -27,116 +23,30 @@ services:
                 -Dsolr.secureComms=none
                 -Dsolr.base.url=/solr
                 -Dindex.subsystem.name=solr6
-                -Dalfresco-pdf-renderer.url=http://alfresco-pdf-renderer:8090/
-                -Djodconverter.url=http://libreoffice:8090/
-                -Dimg.url=http://imagemagick:8090/
-                -Dtika.url=http://tika:8090/
-                -Dsfs.url=http://shared-file-store:8099/
-                -Dshare.host=127.0.0.1
-                -Dshare.port=8080
-                -Dalfresco.host=localhost
-                -Dalfresco.port=8080
-                -Daos.baseUrlOverwrite=http://localhost:8080/alfresco/aos
+                -Dshare.host=localhost
+                -Dalfresco.port=8082
+                -Daos.baseUrlOverwrite=http://localhost:8082/alfresco/aos
                 -Dmessaging.broker.url=\"failover:(nio://activemq:61616)?timeout=3000&jms.useCompression=true\"
                 -Ddeployment.method=DOCKER_COMPOSE
-                -Dlocal.transform.service.enabled=true
-                -Dtransform.service.enabled=true
                 -Dcsrf.filter.enabled=false
-                -Xms1500m -Xmx1500m
+                -Xms1g -Xmx1g
                 "
-
-    transform-router:
-        mem_limit: 512m
-        image: quay.io/alfresco/alfresco-transform-router:1.0.2.1
-        environment:
-          JAVA_OPTS: " -Xms256m -Xmx512m"
-          ACTIVEMQ_URL: "nio://activemq:61616"
-          IMAGEMAGICK_URL: "http://imagemagick:8090"
-          PDF_RENDERER_URL : "http://alfresco-pdf-renderer:8090"
-          LIBREOFFICE_URL : "http://libreoffice:8090"
-          TIKA_URL : "http://tika:8090"
-          FILE_STORE_URL: "http://shared-file-store:8099/alfresco/api/-default-/private/sfs/versions/1/file"
-        links:
-          - activemq
-
-    alfresco-pdf-renderer:
-        image: quay.io/alfresco/alfresco-pdf-renderer:2.0.17
-        mem_limit: 1g
-        environment:
-            JAVA_OPTS: " -Xms256m -Xmx512m"
-            ACTIVEMQ_URL: "nio://activemq:61616"
-            FILE_STORE_URL: "http://shared-file-store:8099/alfresco/api/-default-/private/sfs/versions/1/file"
         ports:
-            - 8090:8090
-        links:
-        - activemq
-
-    imagemagick:
-        image: quay.io/alfresco/alfresco-imagemagick:2.0.17
-        mem_limit: 1g
-        environment:
-            JAVA_OPTS: " -Xms256m -Xmx512m"
-            ACTIVEMQ_URL: "nio://activemq:61616"
-            FILE_STORE_URL: "http://shared-file-store:8099/alfresco/api/-default-/private/sfs/versions/1/file"
-        ports:
-            - 8091:8090
-        links:
-        - activemq
-
-    libreoffice:
-        image: quay.io/alfresco/alfresco-libreoffice:2.0.17
-        mem_limit: 1g
-        environment:
-            JAVA_OPTS: " -Xms256m -Xmx512m"
-            ACTIVEMQ_URL: "nio://activemq:61616"
-            FILE_STORE_URL: "http://shared-file-store:8099/alfresco/api/-default-/private/sfs/versions/1/file"
-        ports:
-            - 8092:8090
-        links:
-        - activemq
-
-    tika:
-        image: quay.io/alfresco/alfresco-tika:2.0.17
-        mem_limit: 1g
-        environment:
-            JAVA_OPTS: " -Xms256m -Xmx512m"
-            ACTIVEMQ_URL: "nio://activemq:61616"
-            FILE_STORE_URL: "http://shared-file-store:8099/alfresco/api/-default-/private/sfs/versions/1/file"
-        ports:
-            - 8093:8090
-        links:
-        - activemq
-
-    shared-file-store:
-        image: alfresco/alfresco-shared-file-store:0.5.3
-        mem_limit: 512m
-        environment:
-            JAVA_OPTS: " -Xms256m -Xmx512m"
-            scheduler.content.age.millis: 86400000
-            scheduler.cleanup.interval: 86400000
-        ports:
-            - 8099:8099
-        volumes:
-            - shared-file-store-volume:/tmp/Alfresco/sfs
+            - 8082:8080 #Browser port
 
     share:
-        image: alfresco/alfresco-share:6.1.0
+        image: alfresco/alfresco-governance-share-community
         mem_limit: 1g
         environment:
-            REPO_HOST: "alfresco"
-            REPO_PORT: "8080"
-            JAVA_OPTS: "
-                -Xms500m
-                -Xmx500m
-                -Dalfresco.host=localhost
-                -Dalfresco.port=8080
-                -Dalfresco.context=alfresco
-                -Dalfresco.protocol=http
-                "
+            - REPO_HOST=alfresco
+            - REPO_PORT=8080
+            - "CATALINA_OPTS= -Xms500m -Xmx500m"
+        ports:
+            - 8080:8080
 
     postgres:
         image: postgres:10.1
-        mem_limit: 512m
+        mem_limit: 1500m
         environment:
             - POSTGRES_PASSWORD=alfresco
             - POSTGRES_USER=alfresco
@@ -146,8 +56,8 @@ services:
             - 5432:5432
 
     solr6:
-        image: alfresco/alfresco-search-services:1.3.0.1
-        mem_limit: 2g
+        image: alfresco/alfresco-search-services:1.3.0-RC2
+        mem_limit: 2500m
         environment:
             #Solr needs to know how to register itself with Alfresco
             - SOLR_ALFRESCO_HOST=alfresco
@@ -163,34 +73,9 @@ services:
 
     activemq:
         image: alfresco/alfresco-activemq:5.15.8
-        mem_limit: 1g
+        mem_limit: 2048m
         ports:
             - 8161:8161 # Web Console
             - 5672:5672 # AMQP
             - 61616:61616 # OpenWire
             - 61613:61613 # STOMP
-
-    digital-workspace:
-        image: quay.io/alfresco/alfresco-digital-workspace:1.1.0
-        mem_limit: 128m
-        environment:
-            BASEPATH: ./
-
-    proxy:
-        image: quay.io/alfresco/alfresco-acs-nginx:3.0.0
-        mem_limit: 128m
-        depends_on:
-            - alfresco
-            - digital-workspace
-        ports:
-            - 8080:8080
-        links:
-            - digital-workspace
-            - alfresco
-            - share
-
-volumes:
-    shared-file-store-volume:
-        driver_opts:
-            type: tmpfs
-            device: tmpfs
