@@ -32,17 +32,17 @@ services:
                 -Xms1g -Xmx1g
                 "
         ports:
-            - 8082:80 #Browser port
+            - 8082:8080 #Browser port
 
     share:
         image: alfresco/alfresco-governance-share-community
         mem_limit: 1g
         environment:
             - REPO_HOST=alfresco
-            - REPO_PORT=80
+            - REPO_PORT=8080
             - "CATALINA_OPTS= -Xms500m -Xmx500m"
         ports:
-            - 80:80
+            - 8080:8080
 
     postgres:
         image: postgres:10.1
@@ -61,7 +61,7 @@ services:
         environment:
             #Solr needs to know how to register itself with Alfresco
             - SOLR_ALFRESCO_HOST=alfresco
-            - SOLR_ALFRESCO_PORT=80
+            - SOLR_ALFRESCO_PORT=8080
             #Alfresco needs to know how to call solr
             - SOLR_SOLR_HOST=solr6
             - SOLR_SOLR_PORT=8983
