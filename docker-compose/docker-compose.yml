@@ -39,10 +39,10 @@ services:
         mem_limit: 1g
         environment:
             - REPO_HOST=alfresco
-            - REPO_PORT=8080
+            - REPO_PORT=80
             - "CATALINA_OPTS= -Xms500m -Xmx500m"
         ports:
-            - 8080:8080
+            - 80:80
 
     postgres:
         image: postgres:10.1
